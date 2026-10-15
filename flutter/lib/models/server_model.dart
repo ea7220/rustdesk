@@ -12,7 +12,6 @@ import 'package:window_manager/window_manager.dart';
 
 import '../common.dart';
 import '../common/formatter/id_formatter.dart';
-import '../desktop/pages/server_page.dart' as desktop;
 import '../desktop/widgets/tabbar_widget.dart';
 import '../mobile/pages/server_page.dart';
 import 'model.dart';
@@ -504,7 +503,6 @@ class ServerModel with ChangeNotifier {
       try {
         final client = Client.fromJson(clientJson);
         _clients.add(client);
-        _addTab(client);
       } catch (e) {
         debugPrint("Failed to decode clientJson '$clientJson', error $e");
       }
@@ -548,7 +546,6 @@ class ServerModel with ChangeNotifier {
         }
         _clients.add(client);
       }
-      _addTab(client);
       // remove disconnected
       final index_disconnected = _clients
           .indexWhere((c) => c.disconnected && c.peerId == client.peerId);
@@ -566,27 +563,6 @@ class ServerModel with ChangeNotifier {
     } catch (e) {
       debugPrint("Failed to call loginRequest,error:$e");
     }
-  }
-
-  void _addTab(Client client) {
-    tabController.add(TabInfo(
-        key: client.id.toString(),
-        label: client.name,
-        closable: false,
-        onTap: () {},
-        page: desktop.buildConnectionCard(client)));
-    Future.delayed(Duration.zero, () async {
-      if (!hideCm) windowOnTop(null);
-    });
-    // Only do the hidden task when on Desktop.
-    if (client.authorized && isDesktop) {
-      cmHiddenTimer = Timer(const Duration(seconds: 3), () {
-        if (!hideCm) windowManager.minimize();
-        cmHiddenTimer = null;
-      });
-    }
-    parent.target?.chatModel
-        .updateConnIdOfKey(MessageKey(client.peerId, client.id));
   }
 
   void showLoginDialog(Client client) {
